@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MEU BOLSO</title>
+  <meta name="theme-color" content="#0d2847">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icone.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Tela de Entrada (Login e Cadastro) -->
+    <main id="tela-login" class="tela">
+      <div class="tela-auth-corpo">
+        <div class="auth-card">
+          <img src="icone.svg" alt="Ícone MEU BOLSO" class="auth-logo">
+          <h1 class="auth-titulo">MEU BOLSO</h1>
+          <p class="auth-subtitulo">Controle simples e direto dos seus gastos</p>
+
+          <div id="mensagem-auth" class="mensagem-box oculto" role="alert"></div>
+
+          <form id="form-auth" onsubmit="return false;">
+            <div class="form-grupo">
+              <label for="auth-email" class="form-label">E-mail</label>
+              <input type="email" id="auth-email" class="form-input" placeholder="seu@email.com" autocomplete="email" required>
+            </div>
+
+            <div class="form-grupo">
+              <label for="auth-senha" class="form-label">Senha</label>
+              <input type="password" id="auth-senha" class="form-input" placeholder="Digite sua senha" autocomplete="current-password" required>
+            </div>
+
+            <div class="auth-botoes">
+              <button type="button" id="btn-entrar" class="btn-primario">
+                Entrar
+              </button>
+              <button type="button" id="btn-criar-conta" class="btn-secundario">
+                Criar conta
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- Tela Principal (Após Login) -->
+    <main id="tela-principal" class="tela oculto">
+      <!-- Topo com o Nome do App e Sair -->
+      <header class="header-app">
+        <div class="logo-container">
+          <img src="icone.svg" alt="Ícone" class="logo-icone">
+          <span class="logo-titulo">MEU BOLSO</span>
+        </div>
+        <button id="btn-sair" class="btn-sair" title="Encerrar sessão">Sair</button>
+      </header>
+
+      <div class="conteudo-principal">
+        <!-- Notificações e Mensagens da Tela Principal -->
+        <div id="mensagem-principal" class="mensagem-box oculto" role="alert"></div>
+
+        <!-- Destaque: Quanto já gastei no mês (Primeiros 5 segundos) -->
+        <section class="card-destaque-total" aria-label="Total gasto no mês atual">
+          <div class="destaque-subtitulo">Quanto já gastei no mês</div>
+          <div id="valor-total-mes" class="destaque-valor">R$ 0,00</div>
+          <div id="rotulo-mes-atual" class="destaque-mes">Carregando...</div>
+        </section>
+
+        <!-- Cartão Resumo da Semana (Escondido se vazio) -->
+        <section id="cartao-resumo" class="card-resumo oculto" aria-label="Resumo da semana">
+          <div class="card-resumo-cabecalho">
+            <span class="card-resumo-titulo">Resumo da semana</span>
+          </div>
+          <p id="texto-resumo" class="card-resumo-texto"></p>
+          <div id="data-resumo" class="card-resumo-data"></div>
+        </section>
+
+        <!-- Barras por Categoria -->
+        <section class="secao-card" aria-label="Gastos por categoria">
+          <h2 class="secao-titulo">Gastos por Categoria</h2>
+          <div id="lista-barras-categorias" class="lista-barras">
+            <!-- Gerado via JavaScript -->
+          </div>
+        </section>
+
+        <!-- Formulário Lançar à Mão -->
+        <section class="secao-card" aria-label="Lançar gasto à mão">
+          <h2 class="secao-titulo">Lançar à mão</h2>
+          <form id="form-lancar-gasto">
+            <div class="form-grid">
+              <div class="form-grupo">
+                <label for="gasto-valor" class="form-label">Valor (R$)</label>
+                <input type="number" id="gasto-valor" class="form-input" placeholder="0,00" step="0.01" min="0.01" required>
+              </div>
+
+              <div class="form-grupo">
+                <label for="gasto-data" class="form-label">Data</label>
+                <input type="date" id="gasto-data" class="form-input" required>
+              </div>
+
+              <div class="form-grupo form-grid-total">
+                <label for="gasto-descricao" class="form-label">Onde ou com o quê</label>
+                <input type="text" id="gasto-descricao" class="form-input" placeholder="Ex: Almoço de domingo, Farmácia Central..." required>
+              </div>
+
+              <div class="form-grupo form-grid-total">
+                <label for="gasto-categoria" class="form-label">Categoria</label>
+                <select id="gasto-categoria" class="form-select" required>
+                  <!-- Preenchido dinamicamente pelas categorias configuradas -->
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-salvar-gasto" class="btn-primario" style="margin-top: 10px;">
+              Adicionar Gasto
+            </button>
+          </form>
+        </section>
+
+        <!-- Lista dos Gastos do Mês -->
+        <section class="secao-card" aria-label="Lista dos gastos do mês">
+          <h2 class="secao-titulo">
+            Gastos deste mês
+            <span id="contador-gastos" style="font-size: 0.8rem; font-weight: normal; color: var(--cinza-texto);"></span>
+          </h2>
+          <div id="lista-gastos-mes" class="lista-gastos">
+            <!-- Gerado via JavaScript -->
+          </div>
+        </section>
+
+        <!-- Espaço do Assistente -->
+        <section class="secao-card" aria-label="Espaço do assistente">
+          <h2 class="secao-titulo">Espaço do Assistente</h2>
+          <div class="assistente-container">
+            <div class="assistente-campo-grupo">
+              <input type="text" id="campo-assistente" class="form-input" placeholder="Digite uma dúvida ou instrução...">
+              <button type="button" id="btn-enviar-assistente" class="btn-dourado">Enviar</button>
+            </div>
+
+            <div class="assistente-botoes-linha">
+              <input type="file" id="input-foto-cupom" accept="image/*" capture="environment" class="oculto">
+              <button type="button" id="btn-foto-cupom" class="btn-foto">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                Foto do cupom
+              </button>
+            </div>
+
+            <div id="mensagem-assistente" class="aviso-assistente oculto">
+              O assistente chega no próximo exercício.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Biblioteca oficial do Supabase pela CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- Configuração das credenciais públicas e categorias -->
+  <script src="configuracao.js"></script>
+  <!-- Lógica da aplicação -->
+  <script src="app.js"></script>
+</body>
+</html>

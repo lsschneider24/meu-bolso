@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f2b48" />
+      <stop offset="100%" stop-color="#071728" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7d070" />
+      <stop offset="50%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#aa820a" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Outer Golden Border Accent -->
+  <rect x="20" y="20" width="472" height="472" rx="96" fill="none" stroke="url(#goldGrad)" stroke-width="8" opacity="0.7" />
+
+  <!-- Coin peaking out of pocket -->
+  <circle cx="256" cy="190" r="85" fill="url(#goldGrad)" />
+  <circle cx="256" cy="190" r="70" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.9" />
+  <text x="256" y="218" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="78" font-weight="900" fill="#0b1d30" text-anchor="middle">$</text>
+
+  <!-- Pocket Shape -->
+  <path d="M 120 220 
+           L 392 220 
+           L 392 320 
+           C 392 410, 320 440, 256 440 
+           C 192 440, 120 410, 120 320 
+           Z" 
+        fill="#123559" 
+        stroke="url(#goldGrad)" 
+        stroke-width="12" 
+        stroke-linejoin="round" />
+
+  <!-- Pocket Hem Stitching (White Dashes) -->
+  <path d="M 140 240 
+           L 372 240" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="5" 
+        stroke-dasharray="10 8" 
+        opacity="0.85" />
+
+  <path d="M 140 255 
+           L 140 320 
+           C 140 395, 200 418, 256 418 
+           C 312 418, 372 395, 372 320 
+           L 372 255" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="5" 
+        stroke-dasharray="10 8" 
+        opacity="0.75" />
+
+  <!-- Pocket Center Accent Emblem -->
+  <circle cx="256" cy="330" r="28" fill="url(#goldGrad)" />
+  <path d="M 246 330 L 253 337 L 268 322" fill="none" stroke="#0b1d30" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -651,15 +651,139 @@
   });
 
   // Espaço do Assistente
-  function dispararAvisoAssistente() {
+
+  // Redimensiona imagem no navegador para no máximo 1600 px em JPEG antes do envio
+  function redimensionarImagem(arquivo, maxDimensao = 1600) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Não foi possível ler a imagem selecionada."));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("O arquivo selecionado não é uma imagem válida."));
+        img.onload = () => {
+          let largura = img.width;
+          let altura = img.height;
+
+          if (largura > maxDimensao || altura > maxDimensao) {
+            if (largura > altura) {
+              altura = Math.round((altura * maxDimensao) / largura);
+              largura = maxDimensao;
+            } else {
+              largura = Math.round((largura * maxDimensao) / altura);
+              altura = maxDimensao;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = largura;
+          canvas.height = altura;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, largura, altura);
+
+          // Exporta JPEG com qualidade equilibrada (85%)
+          const base64Jpeg = canvas.toDataURL("image/jpeg", 0.85);
+          resolve(base64Jpeg);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(arquivo);
+    });
+  }
+
+  function exibirMensagemAssistente(texto, tipo = "info") {
     mensagemAssistente.classList.remove("oculto");
-    mensagemAssistente.textContent = "O assistente chega no próximo exercício.";
+    mensagemAssistente.textContent = texto;
+    if (tipo === "erro") {
+      mensagemAssistente.className = "aviso-assistente mensagem-erro";
+    } else if (tipo === "sucesso") {
+      mensagemAssistente.className = "aviso-assistente mensagem-sucesso";
+    } else {
+      mensagemAssistente.className = "aviso-assistente";
+    }
+  }
+
+  async function enviarAoAssistente({ mensagem, imagem }) {
+    if (!supabase) {
+      exibirMensagemAssistente(
+        "Configuração do Supabase ausente. Verifique app/configuracao.js.",
+        "erro"
+      );
+      return;
+    }
+
+    // Obtém o token da sessão ativa do usuário
+    const { data: sessaoData } = await supabase.auth.getSession();
+    const token = sessaoData?.session?.access_token;
+
+    if (!token) {
+      exibirMensagemAssistente(
+        "Sua sessão expirou (login vencido). Faça login novamente para usar o assistente.",
+        "erro"
+      );
+      return;
+    }
+
+    btnEnviarAssistente.disabled = true;
+    btnFotoCupom.disabled = true;
+    campoAssistente.disabled = true;
+    exibirMensagemAssistente("Consultando assistente...", "info");
+
+    const categorias = (window.MEU_BOLSO && window.MEU_BOLSO.CATEGORIAS) || [];
+
+    const bodyPayload = {
+      mensagem: mensagem || null,
+      imagem: imagem || null,
+      mime: imagem ? "image/jpeg" : null,
+      categorias: categorias
+    };
+
+    try {
+      const res = await fetch("/api/assistente", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(bodyPayload)
+      });
+
+      const dados = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const erroMsg = dados?.erro || "Não foi possível obter resposta do assistente.";
+        exibirMensagemAssistente(erroMsg, "erro");
+        return;
+      }
+
+      if (dados.resposta) {
+        exibirMensagemAssistente(dados.resposta, "sucesso");
+      }
+
+      // Se o gasto foi registrado, atualiza a lista e o total imediatamente
+      if (dados.acao === "registrado") {
+        carregarDadosDoMes();
+        campoAssistente.value = "";
+      }
+    } catch (err) {
+      exibirMensagemAssistente(
+        "Falha ao conectar ao assistente. Verifique a internet e tente novamente.",
+        "erro"
+      );
+    } finally {
+      btnEnviarAssistente.disabled = false;
+      btnFotoCupom.disabled = false;
+      campoAssistente.disabled = false;
+    }
   }
 
   btnEnviarAssistente.addEventListener("click", function () {
     const texto = campoAssistente.value.trim();
-    campoAssistente.value = "";
-    dispararAvisoAssistente();
+    if (!texto) {
+      exibirMensagemAssistente("Digite uma dúvida ou instrução para o assistente.", "info");
+      campoAssistente.focus();
+      return;
+    }
+    enviarAoAssistente({ mensagem: texto });
   });
 
   campoAssistente.addEventListener("keydown", function (evt) {
@@ -670,16 +794,31 @@
   });
 
   btnFotoCupom.addEventListener("click", function () {
-    dispararAvisoAssistente();
-    // Abre a câmera/galeria
     inputFotoCupom.click();
   });
 
-  inputFotoCupom.addEventListener("change", function () {
-    // Briefing: "O app nunca guarda a foto do cupom"
-    // Não enviamos a foto para lugar nenhum e limpamos a seleção
+  inputFotoCupom.addEventListener("change", async function (evt) {
+    const arquivo = evt.target.files && evt.target.files[0];
+    // Limpa o input de arquivo imediatamente (briefing: o app nunca guarda a foto)
     inputFotoCupom.value = "";
-    dispararAvisoAssistente();
+
+    if (!arquivo) return;
+
+    exibirMensagemAssistente("Reduzindo foto para no máximo 1600 px...", "info");
+
+    try {
+      const base64Jpeg = await redimensionarImagem(arquivo, 1600);
+      const texto = campoAssistente.value.trim();
+      await enviarAoAssistente({
+        imagem: base64Jpeg,
+        mensagem: texto || null
+      });
+    } catch (err) {
+      exibirMensagemAssistente(
+        `Erro ao processar imagem: ${err.message || "Tente novamente com outra foto."}`,
+        "erro"
+      );
+    }
   });
 
   // Event Listeners de Autenticação
